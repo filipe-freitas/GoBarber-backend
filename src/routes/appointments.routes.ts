@@ -1,22 +1,28 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { Router } from 'express';
 import { parseISO } from 'date-fns';
-import AppointmentsRepository from '../repositories/AppointmentsRepository';
+import { getCustomRepository } from 'typeorm';
+
 import CreateAppointment from '../services/CreateAppointment.services';
+import ensureAuthenticated from '../middlewares/ensureAuthenticated';
+import AppointmentsRepository from '../repositories/AppointmentsRepository';
 
 // Rota: Receber uma requisição, chamar outro arquivo, devolver uma resposta
-const routes = Router();
+const appointmentsRouter = Router();
 
-const appointmentRepository = new AppointmentsRepository();
+// const appointmentRepository = new AppointmentsRepository();
 
-routes.post('/', (request, response) => {
+appointmentsRouter.use(ensureAuthenticated);
+
+appointmentsRouter.post('/', async (request, response) => {
   try {
-    const { provider, date } = request.body;
+    const { provider_id, date } = request.body;
 
     const parsedDate = parseISO(date);
 
-    const createAppointment = new CreateAppointment(appointmentRepository);
-    const appointment = createAppointment.execute({
-      provider,
+    const createAppointment = new CreateAppointment();
+    const appointment = await createAppointment.execute({
+      provider_id,
       date: parsedDate,
     });
 
@@ -26,10 +32,12 @@ routes.post('/', (request, response) => {
   }
 });
 
-routes.get('/all', (request, response) => {
-  const allAppointments = appointmentRepository.all();
+appointmentsRouter.get('/all', async (request, response) => {
+  // const allAppointments = appointmentRepository.all();
+  const appointmentRepository = getCustomRepository(AppointmentsRepository);
+  const allAppointments = await appointmentRepository.find();
 
   return response.status(200).json(allAppointments);
 });
 
-export default routes;
+export default appointmentsRouter;

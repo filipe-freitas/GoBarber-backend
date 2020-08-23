@@ -1,34 +1,44 @@
+/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable class-methods-use-this */
 import { startOfHour } from 'date-fns';
+import { getCustomRepository } from 'typeorm';
+
+import AppError from '../errors/AppError';
+
 import Appointment from '../models/appointments.models';
 import AppointmentsRepository from '../repositories/AppointmentsRepository';
 
 interface Request {
-  provider: string;
+  provider_id: string;
   date: Date;
 }
 
 class CreateAppointment {
-  private appointmentsRepository: AppointmentsRepository;
+  // private appointmentsRepository: AppointmentsRepository;
 
-  constructor(appointmentsRepository: AppointmentsRepository) {
-    this.appointmentsRepository = appointmentsRepository;
-  }
+  // constructor(appointmentsRepository: AppointmentsRepository) {
+  //   this.appointmentsRepository = appointmentsRepository;
+  // }
 
-  public execute({ provider, date }: Request): Appointment {
+  public async execute({ provider_id, date }: Request): Promise<Appointment> {
+    const appointmentsRepository = getCustomRepository(AppointmentsRepository);
+
     const hourlyAppointment = startOfHour(date);
-    const appointmentOnSameDate = this.appointmentsRepository.findByDate(
+    const appointmentOnSameDate = await appointmentsRepository.findByDate(
       hourlyAppointment,
     );
 
     if (appointmentOnSameDate) {
-      throw Error('Provider already booked!');
+      throw new AppError('Provider already booked!', 400);
       // throw new Error('Provider already booked!'); What's the diff?
     }
 
-    const appointment = this.appointmentsRepository.create({
-      provider,
+    const appointment = appointmentsRepository.create({
+      provider_id,
       date: hourlyAppointment,
     });
+
+    await appointmentsRepository.save(appointment);
 
     return appointment;
   }
