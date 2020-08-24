@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import 'reflect-metadata';
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import 'express-async-errors';
-import routes from './routes/routes';
-import uploadConfig from './config/upload';
-import AppError from './errors/AppError';
-import './database';
-import 'reflect-metadata';
+
+import uploadConfig from '@config/upload';
+import AppError from '@shared/errors/AppError';
+import routes from '@shared/infra/http/routes/routes';
+
+import '@shared/infra/typeorm';
 
 const server = express();
 
