@@ -1,24 +1,24 @@
+/* eslint-disable no-useless-constructor */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable class-methods-use-this */
 import { startOfHour } from 'date-fns';
-import { getCustomRepository } from 'typeorm';
 
 import AppError from '@shared/errors/AppError';
 
 import Appointment from '@appointments/infra/typeorm/entities/appointments';
-import AppointmentsRepository from '@appointments/repositories/AppointmentsRepository';
+import IAppointmentsRepository from '@appointments/repositories/IAppointmentsRepository';
 
-interface Request {
+interface IRequest {
   provider_id: string;
   date: Date;
 }
 
 class CreateAppointment {
-  public async execute({ provider_id, date }: Request): Promise<Appointment> {
-    const appointmentsRepository = getCustomRepository(AppointmentsRepository);
+  constructor(private appointmentsRepository: IAppointmentsRepository) {}
 
+  public async execute({ provider_id, date }: IRequest): Promise<Appointment> {
     const hourlyAppointment = startOfHour(date);
-    const appointmentOnSameDate = await appointmentsRepository.findByDate(
+    const appointmentOnSameDate = await this.appointmentsRepository.findByDate(
       hourlyAppointment,
     );
 
@@ -27,12 +27,10 @@ class CreateAppointment {
       // throw new Error('Provider already booked!'); What's the diff?
     }
 
-    const appointment = appointmentsRepository.create({
+    const appointment = await this.appointmentsRepository.create({
       provider_id,
       date: hourlyAppointment,
     });
-
-    await appointmentsRepository.save(appointment);
 
     return appointment;
   }
