@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { container } from 'tsyringe';
+
 import AuthenticateUserService from '@users/services/AuthenticateUser.services';
 
 const routes = Router();
@@ -6,7 +8,7 @@ const routes = Router();
 routes.post('/', async (request, response) => {
   const { email, password } = request.body;
 
-  const AuthenticateUser = new AuthenticateUserService();
+  const AuthenticateUser = container.resolve(AuthenticateUserService);
 
   const { user, token } = await AuthenticateUser.execute({ email, password });
 

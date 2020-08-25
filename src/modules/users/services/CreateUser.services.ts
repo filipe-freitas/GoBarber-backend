@@ -1,22 +1,28 @@
+/* eslint-disable no-useless-constructor */
 /* eslint-disable class-methods-use-this */
-import { getRepository } from 'typeorm';
 import { hash } from 'bcrypt';
+import { injectable, inject } from 'tsyringe';
 
 import AppError from '@shared/errors/AppError';
 
 import User from '@users/infra/typeorm/entities/users';
+import IUsersRepository from '@users/repositories/IUsersRepository';
 
-interface Request {
+interface IRequest {
   name: string;
   email: string;
   password: string;
 }
 
+@injectable()
 class CreateUser {
-  public async execute({ name, email, password }: Request): Promise<User> {
-    const usersRepository = getRepository(User);
+  constructor(
+    @inject('UsersRepository')
+    private usersRepository: IUsersRepository,
+  ) {}
 
-    const emailExists = await usersRepository.findOne({ where: { email } });
+  public async execute({ name, email, password }: IRequest): Promise<User> {
+    const emailExists = await this.usersRepository.findByEmail(email);
 
     if (emailExists) {
       throw new AppError('Email already used.', 400);
@@ -24,13 +30,11 @@ class CreateUser {
 
     const hashedPassword = await hash(password, 8);
 
-    const user = usersRepository.create({
+    const user = await this.usersRepository.create({
       name,
       email,
       password: hashedPassword,
     });
-
-    await usersRepository.save(user);
 
     return user;
   }

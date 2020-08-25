@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { Router } from 'express';
 import { parseISO } from 'date-fns';
+import { container } from 'tsyringe';
 
 import CreateAppointment from '@appointments/services/CreateAppointment.services';
 import ensureAuthenticated from '@users/infra/http/middlewares/ensureAuthenticated';
-import AppointmentsRepository from '@appointments/infra/typeorm/repositories/AppointmentsRepository';
 
 // Rota: Receber uma requisição, chamar outro arquivo, devolver uma resposta
 const appointmentsRouter = Router();
-const appointmentsRepository = new AppointmentsRepository();
 
 appointmentsRouter.use(ensureAuthenticated);
 
@@ -18,7 +17,7 @@ appointmentsRouter.post('/', async (request, response) => {
 
     const parsedDate = parseISO(date);
 
-    const createAppointment = new CreateAppointment(appointmentsRepository);
+    const createAppointment = container.resolve(CreateAppointment);
     const appointment = await createAppointment.execute({
       provider_id,
       date: parsedDate,

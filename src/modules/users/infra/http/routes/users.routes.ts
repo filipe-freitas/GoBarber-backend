@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { Router } from 'express';
+import { container } from 'tsyringe';
 import multer from 'multer';
 
 import uploadConfig from '@config/upload';
@@ -8,14 +9,14 @@ import ensureAuthenticated from '@users/infra/http/middlewares/ensureAuthenticat
 import UpdateUserAvatarService from '@users/services/UpdateUserAvatar.services';
 
 const usersRoutes = Router();
-
 const upload = multer(uploadConfig);
 
 usersRoutes.post('/', async (request, response) => {
   try {
     const { name, email, password } = request.body;
 
-    const createUser = new CreateUserService();
+    const createUser = container.resolve(CreateUserService);
+
     const user = await createUser.execute({ name, email, password });
 
     delete user.password;
@@ -31,7 +32,7 @@ usersRoutes.patch(
   ensureAuthenticated,
   upload.single('avatar'),
   async (request, response) => {
-    const updateUserAvatar = new UpdateUserAvatarService();
+    const updateUserAvatar = container.resolve(UpdateUserAvatarService);
 
     const user = await updateUserAvatar.execute({
       user_id: request.user.id,
