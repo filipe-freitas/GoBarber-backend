@@ -1,16 +1,13 @@
 /* eslint-disable no-useless-constructor */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable class-methods-use-this */
-import path from 'path';
-import fs from 'fs';
-
 import { injectable, inject } from 'tsyringe';
 
 import AppError from '@shared/errors/AppError';
 
 import User from '@users/infra/typeorm/entities/users';
-import uploadConfig from '@config/upload';
 import IUsersRepository from '@users/repositories/IUsersRepository';
+import IStorageProvider from '@shared/container/providers/StorageProviders/models/IStorageProvider';
 
 interface IRequest {
   user_id: string;
@@ -22,6 +19,8 @@ class UpdateUserAvatarService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
+    @inject('StorageProvider')
+    private storageProvider: IStorageProvider,
   ) {}
 
   public async execute({ user_id, avatarFileName }: IRequest): Promise<User> {
@@ -31,15 +30,10 @@ class UpdateUserAvatarService {
     }
 
     if (user.avatar) {
-      const avatarFilePath = path.join(uploadConfig.directory, user.avatar);
-      const avatarFileExists = await fs.promises.stat(avatarFilePath);
-
-      if (avatarFileExists) {
-        await fs.promises.unlink(avatarFilePath);
-      }
+      await this.storageProvider.deleteFile(user.avatar);
     }
 
-    user.avatar = avatarFileName;
+    user.avatar = await this.storageProvider.saveFile(avatarFileName);
 
     await this.usersRepository.save(user);
 
