@@ -1,6 +1,5 @@
 /* eslint-disable no-useless-constructor */
 /* eslint-disable class-methods-use-this */
-import { compare } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import { injectable, inject } from 'tsyringe';
 
@@ -9,6 +8,7 @@ import AppError from '@shared/errors/AppError';
 import User from '@users/infra/typeorm/entities/users';
 import authConfig from '@config/auth';
 import IUsersRepository from '@users/repositories/IUsersRepository';
+import IHashProvider from '@users/providers/HashProvider/models/IHashProvider';
 
 interface IRequest {
   email: string;
@@ -25,6 +25,8 @@ class AuthenticateUserService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
+    @inject('HashProvider')
+    private hashProvider: IHashProvider,
   ) {}
 
   public async execute({ email, password }: IRequest): Promise<IResponse> {
@@ -33,7 +35,10 @@ class AuthenticateUserService {
       throw new AppError('Invalid credentials', 401);
     }
 
-    const correctPassword = await compare(password, user.password);
+    const correctPassword = await this.hashProvider.compareHash(
+      password,
+      user.password,
+    );
     if (!correctPassword) {
       throw new AppError('Invalid credentials', 401);
     }
