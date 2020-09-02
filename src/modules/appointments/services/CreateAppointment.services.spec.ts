@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-// test('sum two numbers', () => {
-//   expect(1 + 2).toBe(3);
-// });
 import AppError from '@shared/errors/AppError';
 import FakeAppointmentsRepository from '@appointments/repositories/fakes/FakeAppointmentsRepository';
 import CreateAppointmentService from '@appointments/services/CreateAppointment.services';
