@@ -16,7 +16,7 @@ const server = express();
 
 server.use(cors());
 server.use(express.json());
-server.use('/files', express.static(uploadConfig.directory));
+server.use('/files', express.static(uploadConfig.uploadsFolder));
 server.use(routes);
 server.use(
   (error: Error, request: Request, response: Response, _: NextFunction) => {
@@ -27,6 +27,9 @@ server.use(
       });
     }
 
+    // eslint-disable-next-line no-console
+    console.log(error);
+
     response.status(500).json({
       status: 'Error',
       message: 'Internal server error',
@@ -35,5 +38,6 @@ server.use(
 );
 
 server.listen(3333, () => {
+  // eslint-disable-next-line no-console
   console.log('🤖 bring yourself back online');
 });

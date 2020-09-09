@@ -20,7 +20,7 @@ class SendPasswordResetMail {
     private usersRepository: IUsersRepository,
     @inject('MailProvider')
     private mailProvider: IMailProvider,
-    @inject('TokensRepository')
+    @inject('UserTokensRepository')
     private tokensRepository: IUserTokensRepository,
   ) {}
 
@@ -31,11 +31,21 @@ class SendPasswordResetMail {
       throw new AppError('User does not exists.');
     }
 
-    await this.tokensRepository.generate(user.id);
-    await this.mailProvider.send(
-      email,
-      'Pedido de recuperação de senha recebido.',
-    );
+    const { token } = await this.tokensRepository.generate(user.id);
+    await this.mailProvider.send({
+      to: {
+        name: user.name,
+        email: user.email,
+      },
+      subject: '[GoBarber] Recuperação de senha',
+      templateData: {
+        template: 'Olá, {{name}}: {{token}}',
+        variables: {
+          name: user.name,
+          token,
+        },
+      },
+    });
   }
 }
 
