@@ -12,6 +12,7 @@ import IAppointmentsRepository from '@appointments/repositories/IAppointmentsRep
 
 interface IRequest {
   provider_id: string;
+  user_id: string;
   date: Date;
 }
 
@@ -22,7 +23,11 @@ class CreateAppointment {
     private appointmentsRepository: IAppointmentsRepository,
   ) {}
 
-  public async execute({ provider_id, date }: IRequest): Promise<Appointment> {
+  public async execute({
+    provider_id,
+    user_id,
+    date,
+  }: IRequest): Promise<Appointment> {
     const hourlyAppointment = startOfHour(date);
     const appointmentOnSameDate = await this.appointmentsRepository.findByDate(
       hourlyAppointment,
@@ -30,11 +35,11 @@ class CreateAppointment {
 
     if (appointmentOnSameDate) {
       throw new AppError('Provider already booked!', 400);
-      // throw new Error('Provider already booked!'); What's the diff?
     }
 
     const appointment = await this.appointmentsRepository.create({
       provider_id,
+      user_id,
       date: hourlyAppointment,
     });
 
