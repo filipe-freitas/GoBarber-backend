@@ -2,14 +2,17 @@ import { Router } from 'express';
 
 import ensureAuthenticated from '@users/infra/http/middlewares/ensureAuthenticated';
 import AppointmentsController from '@appointments/infra/http/controllers/AppointmentsController';
+import ProviderAppointmentsController from '@appointments/infra/http/controllers/ProviderAppointmentsController';
 
 // Rota: Receber uma requisição, chamar outro arquivo, devolver uma resposta
 const appointmentsRouter = Router();
 const appointmentsController = new AppointmentsController();
+const providerAppointmentsController = new ProviderAppointmentsController();
 
 appointmentsRouter.use(ensureAuthenticated);
 
 appointmentsRouter.post('/', appointmentsController.create);
+appointmentsRouter.get('/me', providerAppointmentsController.index);
 
 // appointmentsRouter.get('/all', async (request, response) => {
 //   const allAppointments = await appointmentsRepository.find();
