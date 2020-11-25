@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-constructor */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable class-methods-use-this */
-import { startOfHour } from 'date-fns';
+import { startOfHour, isBefore, getHours } from 'date-fns';
 
 import { injectable, inject } from 'tsyringe';
 
@@ -29,10 +29,24 @@ class CreateAppointment {
     date,
   }: IRequest): Promise<Appointment> {
     const hourlyAppointment = startOfHour(date);
+
+    if (isBefore(hourlyAppointment, Date.now())) {
+      throw new AppError('You cannot schedule an appointment on a past date.');
+    }
+
+    if (provider_id === user_id) {
+      throw new AppError('You cannot schedule an appointment with yourself.');
+    }
+
+    if (getHours(hourlyAppointment) < 8 || getHours(hourlyAppointment) > 17) {
+      throw new AppError(
+        'You cannot schedule an appointment outside of working hours.',
+      );
+    }
+
     const appointmentOnSameDate = await this.appointmentsRepository.findByDate(
       hourlyAppointment,
     );
-
     if (appointmentOnSameDate) {
       throw new AppError('Provider already booked!', 400);
     }
