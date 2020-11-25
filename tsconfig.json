@@ -10,6 +10,7 @@
     "paths": {
       "@config/*": ["config/*"],
       "@appointments/*": ["modules/appointments/*"],
+      "@notifications/*": ["modules/notifications/*"],
       "@users/*": ["modules/users/*"],
       "@shared/*": ["shared/*"]
     },
