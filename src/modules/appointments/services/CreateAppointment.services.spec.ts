@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import AppError from '@shared/errors/AppError';
 import FakeAppointmentsRepository from '@appointments/repositories/fakes/FakeAppointmentsRepository';
+import FakeNotificationsRepository from '@notifications/repositories/fakes/FakeNotificationsRepository';
 import CreateAppointmentService from '@appointments/services/CreateAppointment.services';
 
 let fakeAppointmentsRepository: FakeAppointmentsRepository;
+let fakeNotificationsRepository: FakeNotificationsRepository;
 let createAppointment: CreateAppointmentService;
 
 describe('CreateAppointment', () => {
   beforeEach(() => {
     fakeAppointmentsRepository = new FakeAppointmentsRepository();
+    fakeNotificationsRepository = new FakeNotificationsRepository();
     createAppointment = new CreateAppointmentService(
       fakeAppointmentsRepository,
+      fakeNotificationsRepository,
     );
   });
 

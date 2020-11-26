@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-constructor */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable class-methods-use-this */
-import { startOfHour, isBefore, getHours } from 'date-fns';
+import { startOfHour, isBefore, getHours, format } from 'date-fns';
 
 import { injectable, inject } from 'tsyringe';
 
@@ -9,6 +9,8 @@ import AppError from '@shared/errors/AppError';
 
 import Appointment from '@appointments/infra/typeorm/entities/appointments';
 import IAppointmentsRepository from '@appointments/repositories/IAppointmentsRepository';
+
+import INotificationsRepository from '@notifications/repositories/INotificationsRepository';
 
 interface IRequest {
   provider_id: string;
@@ -21,6 +23,9 @@ class CreateAppointment {
   constructor(
     @inject('AppointmentsRepository')
     private appointmentsRepository: IAppointmentsRepository,
+
+    @inject('NotificationsRepository')
+    private notificationsRepository: INotificationsRepository,
   ) {}
 
   public async execute({
@@ -55,6 +60,12 @@ class CreateAppointment {
       provider_id,
       user_id,
       date: hourlyAppointment,
+    });
+
+    const appointmentDate = format(date, "dd/MM/yyyy 'às' HH:mm'h'");
+    await this.notificationsRepository.create({
+      recipient_id: user_id,
+      content: `Serviço reservado para ${appointmentDate}`,
     });
 
     return appointment;
