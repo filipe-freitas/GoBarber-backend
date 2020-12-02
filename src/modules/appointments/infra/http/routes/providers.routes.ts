@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { Router } from 'express';
+import { celebrate, Segments, Joi } from 'celebrate';
 
 import ensureAuthenticated from '@users/infra/http/middlewares/ensureAuthenticated';
 import ProvidersController from '@appointments/infra/http/controllers/ProvidersController';
@@ -16,11 +18,21 @@ providersRouter.get('/', providersController.index);
 
 providersRouter.get(
   '/:provider_id/month-availability',
+  celebrate({
+    [Segments.PARAMS]: {
+      provider_id: Joi.string().uuid().required(),
+    },
+  }),
   providerMonthAvailabilityController.index,
 );
 
 providersRouter.get(
   '/:provider_id/day-availability',
+  celebrate({
+    [Segments.PARAMS]: {
+      provider_id: Joi.string().uuid().required(),
+    },
+  }),
   providerDayAvailabilityController.index,
 );
 

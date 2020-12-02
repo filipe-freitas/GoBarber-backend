@@ -2,6 +2,7 @@
 import 'reflect-metadata';
 
 import express, { Request, Response, NextFunction } from 'express';
+import { errors } from 'celebrate';
 import cors from 'cors';
 import 'express-async-errors';
 
@@ -18,6 +19,9 @@ server.use(cors());
 server.use(express.json());
 server.use('/files', express.static(uploadConfig.uploadsFolder));
 server.use(routes);
+
+server.use(errors);
+
 server.use(
   (error: Error, request: Request, response: Response, _: NextFunction) => {
     if (error instanceof AppError) {
