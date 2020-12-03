@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
+import { classToClass } from 'class-transformer';
 
 import CreateUserService from '@users/services/CreateUser.services';
 
@@ -13,9 +14,7 @@ export default class UsersController {
 
       const user = await createUser.execute({ name, email, password });
 
-      delete user.password;
-
-      return response.json(user);
+      return response.json({ user: classToClass(user) });
     } catch (err) {
       return response.status(400).json({ error: err.message });
     }
