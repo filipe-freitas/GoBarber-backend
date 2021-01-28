@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import FakeUsersRepository from '@users/repositories/fakes/FakeUsersRepository';
 import ListProvidersService from '@appointments/services/ListProviders.services';
+import FakeCacheProvider from '@shared/container/providers/CacheProvider/fakes/FakeCacheProvider';
 
 let fakeUsersRepository: FakeUsersRepository;
 let listProviders: ListProvidersService;
+let fakeCacheProvider: FakeCacheProvider;
 
 describe('ListProviders', () => {
   beforeEach(() => {
     fakeUsersRepository = new FakeUsersRepository();
-    listProviders = new ListProvidersService(fakeUsersRepository);
+    fakeCacheProvider = new FakeCacheProvider();
+    listProviders = new ListProvidersService(
+      fakeUsersRepository,
+      fakeCacheProvider,
+    );
   });
 
   it('should be able to list the providers', async () => {
@@ -41,5 +47,28 @@ describe('ListProviders', () => {
     });
 
     expect(providers).toEqual([user1, user2, user3]);
+  });
+
+  it('should be able to cache the list of the providers', async () => {
+    const loggedUser = await fakeUsersRepository.create({
+      name: 'Thomas Wayne',
+      email: 'thomas.wayne@wayne.com',
+      password: '123123',
+    });
+
+    const recoverCache = jest.spyOn(fakeCacheProvider, 'recover');
+    const saveCache = jest.spyOn(fakeCacheProvider, 'save');
+
+    await listProviders.execute({
+      user_id: loggedUser.id,
+    });
+
+    expect(saveCache).toHaveBeenCalled();
+
+    await listProviders.execute({
+      user_id: loggedUser.id,
+    });
+
+    expect(recoverCache).toHaveBeenCalled();
   });
 });

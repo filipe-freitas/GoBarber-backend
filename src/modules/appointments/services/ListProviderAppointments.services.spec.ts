@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import FakeAppointmentsRepository from '@appointments/repositories/fakes/FakeAppointmentsRepository';
 import ListProviderAppointmentsService from '@appointments/services/ListProviderAppointments.services';
+import FakeCacheProvider from '@shared/container/providers/CacheProvider/fakes/FakeCacheProvider';
 
 let fakeAppointmentsRepository: FakeAppointmentsRepository;
 let listProviderAppointmentsService: ListProviderAppointmentsService;
+let fakeCacheProvider: FakeCacheProvider;
 
 describe('ListProviderAppointmentsService', () => {
   beforeEach(() => {
     fakeAppointmentsRepository = new FakeAppointmentsRepository();
+    fakeCacheProvider = new FakeCacheProvider();
     listProviderAppointmentsService = new ListProviderAppointmentsService(
       fakeAppointmentsRepository,
+      fakeCacheProvider,
     );
   });
 
@@ -53,5 +57,44 @@ describe('ListProviderAppointmentsService', () => {
       //   { hour: 16, available: true },
       // ]),
     );
+  });
+
+  it('should be able to cache the appointments of a given provider and date', async () => {
+    const saveCache = jest.spyOn(fakeCacheProvider, 'save');
+
+    await fakeAppointmentsRepository.create({
+      provider_id: 'provider',
+      user_id: 'user',
+      date: new Date(2020, 0, 2, 8, 0, 0),
+    });
+
+    const appointment = await listProviderAppointmentsService.execute({
+      provider_id: 'provider',
+      day: 2,
+      month: 1,
+      year: 2020,
+    });
+
+    expect(saveCache).toHaveBeenCalled();
+
+    const recoverCache = jest.spyOn(fakeCacheProvider, 'recover');
+    const recoverDatabase = jest.spyOn(
+      fakeAppointmentsRepository,
+      'findAllInDayFromProvider',
+    );
+
+    const cachedAvailability = await listProviderAppointmentsService.execute({
+      provider_id: 'provider',
+      day: 2,
+      month: 1,
+      year: 2020,
+    });
+
+    // console.log(cachedAvailability);
+    // console.log(appointment);
+
+    // expect(cachedAvailability).toEqual(appointment);
+    expect(recoverCache).toHaveBeenCalled();
+    expect(recoverDatabase).toHaveBeenCalledTimes(0);
   });
 });
