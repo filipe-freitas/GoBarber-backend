@@ -26,7 +26,7 @@ server.use(errors);
 server.use(
   (error: Error, request: Request, response: Response, _: NextFunction) => {
     if (error instanceof AppError) {
-      response.status(error.statusCode).json({
+      return response.status(error.statusCode).json({
         status: 'Error',
         message: error.message,
       });
@@ -35,7 +35,7 @@ server.use(
     // eslint-disable-next-line no-console
     console.log(error);
 
-    response.status(500).json({
+    return response.status(500).json({
       status: 'Error',
       message: 'Internal server error',
     });
