@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable class-methods-use-this */
 import { injectable, inject } from 'tsyringe';
+import { classToClass } from 'class-transformer';
 
 import User from '@users/infra/typeorm/entities/users';
 import IUsersRepository from '@users/repositories/IUsersRepository';
@@ -30,7 +31,7 @@ class ListProvidersService {
         except_user_id: user_id,
       });
 
-      this.cacheProvider.save(`providers-list:${user_id}`, users);
+      this.cacheProvider.save(`providers-list:${user_id}`, classToClass(users));
     }
 
     return users;
