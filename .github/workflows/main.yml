@@ -49,7 +49,9 @@ jobs:
           target: "~/app/GoBarber-backend"
 
       # Instalar as dependências NPM/Yarn na Digital Ocean
-      - name: Install project dependencies on Digital Ocean
+      # Executar as migrations do TypeORM e reinicia o servidor Node
+      # Reiniciar o servidor NodeJS
+      - name: Run production scripts
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -59,25 +61,5 @@ jobs:
           script: | # cd ~/app/GoBarber-backend && yarn
             cd ~/app/GoBarber-backend
             yarn
-
-      # Executar as migrations do TypeORM
-      - name: Run TypeORM's migrations on Digital Ocean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: | # cd ~/app/GoBarber-backend && ./node_modules/.bin/typeorm migration:run
-            cd ~/app/GoBarber-backend
             ./node_modules/.bin/typeorm migration:run
-
-      # Reiniciar o servidor NodeJS
-      - name: Reset the node server by PM2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: pm2 restart server # Name or ID of the PM2
+            pm2 restart server # Name or ID of the PM2
